@@ -7,15 +7,27 @@ trigger:
 - master
 
 pool:
-  vmImage: windows-latest
-  demands:
-   - visualstudio
+ demands:
+ - visualstudio
 
-steps:
-- script: echo Hello, world!
-  displayName: 'Run a one-line script'
+stages:
+  - stage:
+    jobs:
+    - job: Build
+      steps:
+      - task: NuGetToolInstaller@0
+        inputs:
+          checkLatest: true
+      
+      - task: NuGetRestore@1
+        inputs:
+         solution: '**\*.sln'
 
-- script: |
-    echo Add other tasks to build, test, and deploy your project.
-    echo See https://aka.ms/yaml
-  displayName: 'Run a multi-line script'
+      - task: MSBuild@1
+        inputs:
+         clean: true
+         platform: 'any cpu'
+         configuration: 'release'
+         solution: '**\*.sln'
+         msbuildArguments: '/p:DeployOnBuild=true /p:WebPublishMethod=Package 
+ /p:PackageAsSingleFile=true /p:SkipInvalidConfigurations=true /p:PackageLocation="$(build.artifactstagingdirectory)\\"'
